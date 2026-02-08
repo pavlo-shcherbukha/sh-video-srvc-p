@@ -1,0 +1,15 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Python Debugger: vcam_runner.py",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/vcam_runner.py",
+      "env": {
+        "RTSP_URL": "http://localhost:8080/video",
+        "VIDEO_DIR": "video"
+      }
+
+  ]
+}
