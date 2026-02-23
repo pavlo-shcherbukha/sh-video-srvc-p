@@ -1,0 +1,20 @@
+# Використовуємо ваш уже зібраний базовий образ
+FROM data-pipeline-base:latest
+
+# Встановлення робочої директорії
+WORKDIR /app
+
+# Копіювання моделі (припускаємо, що вона вже є в корені проекту)
+RUN cp /usr/src/app/yolov8n.pt .
+
+# Копіювання специфічних залежностей (поки що порожній файл)
+COPY requirements.video.txt .
+RUN pip install --no-cache-dir -r requirements.video.txt
+
+# Копіювання коду: спочатку папку з модулями, потім основний скрипт
+COPY ./shared_utils ./utils
+COPY ./video_worker ./video_worker
+COPY video_runner.py .
+
+# Команда запуску
+CMD ["python", "video_runner.py"]

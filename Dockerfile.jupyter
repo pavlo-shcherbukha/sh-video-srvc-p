@@ -1,0 +1,17 @@
+# Використовуємо ваш уже зібраний базовий образ
+FROM data-pipeline-base:latest
+
+# Встановлення робочої директорії
+WORKDIR /app
+
+# Копіювання моделі (припускаємо, що вона вже є в корені проекту)
+RUN cp /usr/src/app/yolov8n.pt .
+
+COPY ./shared_utils ./utils
+# Копіювання специфічних залежностей (поки що порожній файл)
+COPY requirements.jupyter.txt .
+RUN pip install --no-cache-dir -r requirements.jupyter.txt
+
+
+# Команда запуску
+CMD ["jupyter", "lab", "--ip=0.0.0.0", "--port=8888", "--no-browser", "--allow-root", "--NotebookApp.token=''"]

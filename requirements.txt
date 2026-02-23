@@ -1,4 +1,0 @@
-#requests
-datetime
-python-dotenv
-opencv-python-headless

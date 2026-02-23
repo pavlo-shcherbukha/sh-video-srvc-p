@@ -1,0 +1,15 @@
+requests
+datetime
+python-dotenv
+opencv-python-headless
+redis
+rq
+rq_scheduler
+jupyterlab
+pandas
+matplotlib
+nbconvert
+pandoc
+ipywidgets
+ipython
+ultralytics==8.3.235

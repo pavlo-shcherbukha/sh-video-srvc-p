@@ -1,15 +1,18 @@
+import json
 import os
 import time 
 import sys
 import logging
 
 from datetime import datetime,timedelta
+import redis
+from rq import Queue
 
 import cv2
-from dotenv import load_dotenv
 import shutil
+from utils import tasks
 
-load_dotenv() 
+
 
 LOG_FORMAT = '%(asctime)s - %(levelname)s - %(name)s - %(message)s'
 logger = logging.getLogger(__name__)
@@ -39,6 +42,10 @@ logger.debug("debug message")
 
 RTSP_URL = os.environ.get('RTSP_URL','NONE')
 VIDEO_DIR = os.environ.get('VIDEO_DIR', "NONE")
+irds_host = os.getenv('RDS_HOST')
+irds_port = os.getenv('RDS_PORT')
+irds_psw = os.getenv('RDS_PSW')
+irdsq_queue = os.getenv('RDSQ_OUTMSG')
 
 logger.debug( f"===================================")
 if RTSP_URL == "NONE":
@@ -48,9 +55,27 @@ if VIDEO_DIR == "NONE":
 logger.debug( f"===================================")
 
 
+logger.debug( "Підключення до Redis (використовуємо змінні з  env)")
+redis_conn = redis.Redis(host=irds_host,port=irds_port, password=irds_psw, decode_responses=False)
+
+logger.debug( f"Підключення до черги {irdsq_queue}")
+queue = Queue(irdsq_queue, connection=redis_conn)
+
+def notify_worker(file_name):
+    """Додає задачу на обробку відео в чергу RQ"""
+    try:
+        # Припускаємо, що обробник буде функція process_video в іншому модулі
+        message_o={"filename": file_name}
+        message_s=json.dumps(message_o)
+        logger.debug(f"Повідомлення для черги: {message_s}")
+        job = queue.enqueue('utils.tasks.crttask_sendmsg',  message_s)
+        logger.info(f"Задачу додано в чергу: {job.id} для файлу {file_name}")
+    except Exception as e:
+        logger.error(f"Помилка черги Redis: {e}")
+
 def upload_file(file_path, blob_name):
     """
-    Завантажує файл у каталог відео.
+    Завантажує файл у Azure Blob Storage.
     """
     try:
         shutil.copyfile( file_path, f'{VIDEO_DIR}/{blob_name}')
@@ -124,6 +149,7 @@ def main():
                         is_recording = False
                         logger.debug("Запис завершено.")
                         if upload_file(current_filename, current_filename):
+                            notify_worker(current_filename)
                             os.remove(current_filename)
                             logger.debug(f"Локальний файл {current_filename} видалено.")     
                 # ВАЖЛИВО: У headless режимі cv2.waitKey(1) не потрібен для виводу зображення,

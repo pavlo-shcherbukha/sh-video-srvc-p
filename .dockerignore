@@ -1,7 +1,8 @@
-notebooks/
+
 data/
 *.log
 .git/
 env/
 video/
 /_pycache_/
+notebooks

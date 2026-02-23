@@ -133,4 +133,8 @@ __blobstorage__
 __queuestorage__
 __azurite_db*__.json
 .python_packages
+.Trash-0
 config.env
+video
+redis_data
+./notebooks/video

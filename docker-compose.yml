@@ -1,0 +1,57 @@
+services:
+  redis:
+    image: redis:6-alpine
+    container_name: redis_video_queue
+    ports:
+      - "6379:6379"
+    command: redis-server --requirepass ${REDIS_PASSWORD:-22}
+    volumes:
+      - ./redis_data:/data
+    restart: always
+
+  # Сервіс захоплення відео (використовує свій Dockerfile)
+  video-capture:
+    build:
+      context: .
+      dockerfile: Dockerfile.capture # Вкажіть назву файлу для цього сервісу
+    container_name: video_capture_service
+    env_file:
+      - videocapure.env
+    volumes:
+      - ./video:/app/video
+      - ./shared_utils:/app/utils
+    depends_on:
+      - redis
+
+  # Jupyter Lab (використовує інший Dockerfile)
+  jupyter:
+    build:
+      context: .
+      dockerfile: Dockerfile.jupyter # Окремий файл для Jupyter
+    container_name: jupyter_debug
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./notebooks:/app
+      - ./video:/app/video # Додайте доступ до відео для аналізу в ноутбуках
+      - ./shared_utils:/app/utils
+      
+    environment:
+      - RDS_HOST=redis
+      - RDS_PORT=6379
+      - RDS_PSW=${REDIS_PASSWORD:-22}
+      - RDSQ_OUTMSG='video_queue'
+
+  video-worker:
+      build:
+        context: .
+        dockerfile: Dockerfile.video
+      env_file:
+        - videoworker.env  
+      # Перезаписуємо CMD, щоб запустити саме воркер
+      command: python video_runner.py 
+      volumes:
+        - ./video:/app/video
+        - ./shared_utils:/app/utils
+      depends_on:
+        - redis
