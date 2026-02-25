@@ -47,7 +47,8 @@ logger.debug("debug message")
 
 
 LOG_FILE = os.path.join(os.environ.get('VIDEO_DIR', '/app/video'), 'detections_log.jsonl')
-MODEL_PATH = "yolov8n.pt"
+MODEL_PATH = "/usr/src/app/yolov8n.pt"
+#MODEL_PATH = "../app/yolov/yolov8n.pt"
 logger.debug(f"Модель завантажується з локального файлу: {MODEL_PATH}")
 if os.path.exists(MODEL_PATH):
     yolo_model = YOLO(MODEL_PATH)

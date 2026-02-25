@@ -40,7 +40,8 @@ services:
       - RDS_HOST=redis
       - RDS_PORT=6379
       - RDS_PSW=${REDIS_PASSWORD:-22}
-      - RDSQ_OUTMSG='video_queue'
+      - RDSQ_OUTMSG=video_queue
+      - YOLO_CONFIG_DIR=/tmp/ultralytics_config
 
   video-worker:
       build:
